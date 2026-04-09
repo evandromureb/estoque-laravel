@@ -47,8 +47,8 @@
                         </div>
                     @endif
 
-                    <div class="-mx-6 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <div class="-mx-6 w-full min-w-0 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
+                        <table class="w-full min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr class="bg-gray-100/50">
                                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Identificação</th>
@@ -363,8 +363,8 @@
                                 </form>
 
                                 <h4 class="mb-3 text-xs font-black uppercase tracking-widest text-gray-500">Posições atuais</h4>
-                                <div class="overflow-x-auto rounded-xl border border-gray-200">
-                                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <div class="w-full min-w-0 overflow-x-auto rounded-xl border border-gray-200">
+                                    <table class="w-full min-w-full divide-y divide-gray-100 text-sm">
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th class="px-3 py-2 text-left text-[10px] font-black uppercase text-gray-400">Armazém</th>
@@ -506,8 +506,8 @@
                                     <span x-show="viewProduct.belowMinimum" class="ml-2 text-xs font-black uppercase text-amber-800">Abaixo do mínimo</span>
                                 </div>
                                 <p class="text-xs text-gray-500" x-show="viewProduct.canManageStock">Para alterar quantidades ou posições, use <span class="font-bold text-gray-700">Editar produto</span> e a aba Estoque.</p>
-                                <div class="overflow-x-auto rounded-xl border border-gray-200">
-                                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <div class="w-full min-w-0 overflow-x-auto rounded-xl border border-gray-200">
+                                    <table class="w-full min-w-full divide-y divide-gray-100 text-sm">
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th class="px-4 py-3 text-left text-[10px] font-black uppercase text-gray-400">Armazém</th>

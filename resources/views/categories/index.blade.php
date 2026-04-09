@@ -40,8 +40,8 @@
                         </div>
                     @endif
 
-                    <div class="-mx-6 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <div class="-mx-6 w-full min-w-0 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
+                        <table class="w-full min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr class="bg-gray-100/50">
                                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Nome / Descrição</th>

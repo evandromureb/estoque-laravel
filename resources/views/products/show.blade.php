@@ -191,8 +191,8 @@
                             </div>
                         @endcan
 
-                        <div class="overflow-x-auto rounded-3xl border border-gray-100 bg-gray-50/30">
-                            <table class="min-w-full divide-y divide-gray-100">
+                        <div class="w-full min-w-0 overflow-x-auto rounded-3xl border border-gray-100 bg-gray-50/30">
+                            <table class="w-full min-w-full divide-y divide-gray-100">
                                 <thead class="bg-white/80 backdrop-blur-md">
                                     <tr>
                                         <th class="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Armazém</th>

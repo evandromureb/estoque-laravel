@@ -25,6 +25,7 @@ describe('user management', function (): void {
 
         $this->actingAs($this->admin)->get(route('users.index'))
             ->assertOk()
+            ->assertSee('w-full min-w-full divide-y divide-gray-200', false)
             ->assertSee('Perfil')
             ->assertSee('Conta')
             ->assertSee('Administrador')
