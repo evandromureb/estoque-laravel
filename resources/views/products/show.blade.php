@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+        <div class="max-w-7xl mx-auto min-w-0 sm:px-6 lg:px-8 space-y-8">
             @if ($errors->any())
                 <x-validation-errors />
             @endif
@@ -98,7 +98,7 @@
                 </div>
 
                 <!-- Info Section -->
-                <div class="md:flex-1 p-8 lg:p-12 space-y-8">
+                <div class="md:flex-1 min-w-0 p-8 lg:p-12 space-y-8">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{{ $product->category->name }}</span>
@@ -191,7 +191,7 @@
                             </div>
                         @endcan
 
-                        <div class="overflow-hidden rounded-3xl border border-gray-100 bg-gray-50/30">
+                        <div class="overflow-x-auto rounded-3xl border border-gray-100 bg-gray-50/30">
                             <table class="min-w-full divide-y divide-gray-100">
                                 <thead class="bg-white/80 backdrop-blur-md">
                                     <tr>

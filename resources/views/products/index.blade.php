@@ -9,7 +9,7 @@
         $warehousesJson = $warehouses->map(fn ($w) => ['id' => $w->id, 'name' => $w->name])->values();
     @endphp
     <div class="py-12" x-data="productManagement({ routes: @js($crudRoutes), warehouses: @js($warehousesJson) })">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto min-w-0 sm:px-6 lg:px-8">
             @if ($errors->any())
                 <div class="mb-6">
                     <x-validation-errors />
@@ -47,7 +47,7 @@
                         </div>
                     @endif
 
-                    <div class="overflow-hidden bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="-mx-6 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr class="bg-gray-100/50">
@@ -506,7 +506,7 @@
                                     <span x-show="viewProduct.belowMinimum" class="ml-2 text-xs font-black uppercase text-amber-800">Abaixo do mínimo</span>
                                 </div>
                                 <p class="text-xs text-gray-500" x-show="viewProduct.canManageStock">Para alterar quantidades ou posições, use <span class="font-bold text-gray-700">Editar produto</span> e a aba Estoque.</p>
-                                <div class="overflow-hidden rounded-xl border border-gray-200">
+                                <div class="overflow-x-auto rounded-xl border border-gray-200">
                                     <table class="min-w-full divide-y divide-gray-100 text-sm">
                                         <thead class="bg-gray-50">
                                             <tr>

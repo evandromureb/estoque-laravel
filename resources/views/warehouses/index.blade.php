@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12" x-data="warehouseManagement(@js($crudRoutes))">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto min-w-0 sm:px-6 lg:px-8">
             @if ($errors->any())
                 <div class="mb-6">
                     <x-validation-errors />
@@ -40,7 +40,7 @@
                         </div>
                     @endif
 
-                    <div class="overflow-hidden bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="-mx-6 overflow-x-auto bg-gray-50 px-6 sm:mx-0 sm:px-0 rounded-xl border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr class="bg-gray-100/50">

@@ -150,6 +150,25 @@ it('filters products index by search', function (): void {
         ->assertSee('Produto Busca XYZ', false);
 });
 
+it('wraps admin listing tables in a horizontal scroll container on narrow viewports', function (): void {
+    $product = Product::factory()->create();
+
+    $urls = [
+        route('products.index'),
+        route('products.show', $product),
+        route('categories.index'),
+        route('warehouses.index'),
+        route('users.index'),
+    ];
+
+    foreach ($urls as $url) {
+        $this->actingAs($this->admin)
+            ->get($url)
+            ->assertOk()
+            ->assertSee('overflow-x-auto', false);
+    }
+});
+
 it('redirects when product list page is beyond the last page', function (): void {
     Product::factory()->count(11)->create();
 
