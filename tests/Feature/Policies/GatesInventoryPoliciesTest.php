@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types = 1);
+
+use App\Models\{Category, User, Warehouse};
+use Illuminate\Support\Facades\Gate;
+
+beforeEach(function (): void {
+    $this->admin  = User::factory()->admin()->create();
+    $this->member = User::factory()->create();
+});
+
+it('allows only admins to view a category instance', function (): void {
+    $category = Category::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('view', $category))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('view', $category))->toBeFalse();
+});
+
+it('allows only admins to update a category', function (): void {
+    $category = Category::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('update', $category))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('update', $category))->toBeFalse();
+});
+
+it('allows only admins to view a warehouse instance', function (): void {
+    $warehouse = Warehouse::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('view', $warehouse))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('view', $warehouse))->toBeFalse();
+});
+
+it('allows only admins to update a warehouse', function (): void {
+    $warehouse = Warehouse::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('update', $warehouse))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('update', $warehouse))->toBeFalse();
+});
+
+it('allows only admins to view another user', function (): void {
+    $other = User::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('view', $other))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('view', $other))->toBeFalse();
+});
+
+it('prevents admin from deleting their own account via policy', function (): void {
+    expect(Gate::forUser($this->admin)->allows('delete', $this->admin))->toBeFalse();
+});
+
+it('allows admin to delete another user', function (): void {
+    $other = User::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('delete', $other))->toBeTrue();
+});
+
+it('forbids non-admin from deleting any user', function (): void {
+    $other = User::factory()->create();
+
+    expect(Gate::forUser($this->member)->allows('delete', $other))->toBeFalse();
+});

@@ -28,3 +28,11 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+.claude
+.cursor
+.github
+.vscode
+.mcp.json
+AGENTS.md
+CLAUDE.md
+.idea
