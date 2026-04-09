@@ -36,3 +36,5 @@ auth.json
 AGENTS.md
 CLAUDE.md
 .idea
+coverage
+/coverage/

@@ -5,52 +5,51 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\{StoreWarehouseRequest, UpdateWarehouseRequest};
+use App\Http\Resources\Api\V1\WarehouseResource;
+use App\Models\Warehouse;
+use Illuminate\Http\{JsonResponse, Response};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-/**
- * Stub para futura API REST. Não está registado em rotas.
- *
- * @internal
- */
 class WarehouseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): void
+    public function index(): AnonymousResourceCollection
     {
-        //
+        $this->authorize('viewAny', Warehouse::class);
+
+        return WarehouseResource::collection(
+            Warehouse::query()->orderBy('name')->paginate(15),
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): void
+    public function store(StoreWarehouseRequest $request): JsonResponse
     {
-        //
+        $warehouse = Warehouse::query()->create($request->validated());
+
+        return (new WarehouseResource($warehouse))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): void
+    public function show(Warehouse $warehouse): WarehouseResource
     {
-        //
+        $this->authorize('view', $warehouse);
+
+        return new WarehouseResource($warehouse);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id): void
+    public function update(UpdateWarehouseRequest $request, Warehouse $warehouse): WarehouseResource
     {
-        //
+        $warehouse->update($request->validated());
+
+        return new WarehouseResource($warehouse->fresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id): void
+    public function destroy(Warehouse $warehouse): Response
     {
-        //
+        $this->authorize('delete', $warehouse);
+        $warehouse->delete();
+
+        return response()->noContent();
     }
 }

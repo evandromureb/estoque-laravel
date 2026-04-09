@@ -5,52 +5,51 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\{StoreCategoryRequest, UpdateCategoryRequest};
+use App\Http\Resources\Api\V1\CategoryResource;
+use App\Models\Category;
+use Illuminate\Http\{JsonResponse, Response};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-/**
- * Stub para futura API REST. Não está registado em rotas.
- *
- * @internal
- */
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): void
+    public function index(): AnonymousResourceCollection
     {
-        //
+        $this->authorize('viewAny', Category::class);
+
+        return CategoryResource::collection(
+            Category::query()->orderBy('name')->paginate(15),
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): void
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        //
+        $category = Category::query()->create($request->validated());
+
+        return (new CategoryResource($category))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): void
+    public function show(Category $category): CategoryResource
     {
-        //
+        $this->authorize('view', $category);
+
+        return new CategoryResource($category);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id): void
+    public function update(UpdateCategoryRequest $request, Category $category): CategoryResource
     {
-        //
+        $category->update($request->validated());
+
+        return new CategoryResource($category->fresh());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id): void
+    public function destroy(Category $category): Response
     {
-        //
+        $this->authorize('delete', $category);
+        $category->delete();
+
+        return response()->noContent();
     }
 }

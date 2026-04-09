@@ -4,53 +4,84 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Application\Inventory\Products\{CreateProductAction, DeleteProductAction, ListProductsForIndexQuery, UpdateProductAction};
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\Api\V1\ProductResource;
+use App\Models\Product;
+use App\Support\Http\RequestUploadedFileList;
+use Illuminate\Http\{JsonResponse, Request, Response};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-/**
- * Stub para futura API REST. Não está registado em rotas.
- *
- * @internal
- */
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): void
-    {
-        //
+    public function __construct(
+        private readonly ListProductsForIndexQuery $listProductsForIndexQuery,
+        private readonly CreateProductAction $createProductAction,
+        private readonly UpdateProductAction $updateProductAction,
+        private readonly DeleteProductAction $deleteProductAction,
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): void
+    public function index(Request $request): AnonymousResourceCollection
     {
-        //
+        $this->authorize('viewAny', Product::class);
+
+        $search = $request->filled('search') ? (string) $request->query('search') : null;
+        $data   = $this->listProductsForIndexQuery->execute($search, 15);
+
+        return ProductResource::collection($data->products);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): void
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        //
+        $validated = $request->validated();
+        unset($validated['images']);
+
+        $imageFiles = RequestUploadedFileList::asList($request, 'images');
+
+        $product = $this->createProductAction->execute($validated, $imageFiles);
+        $product->load(['category', 'images', 'locations.warehouse']);
+        $product->loadSum('locations', 'quantity');
+
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id): void
+    public function show(Product $product): ProductResource
     {
-        //
+        $this->authorize('view', $product);
+
+        $product->load(['category', 'images', 'locations.warehouse']);
+        $product->loadSum('locations', 'quantity');
+
+        return new ProductResource($product);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id): void
+    public function update(UpdateProductRequest $request, Product $product): ProductResource
     {
-        //
+        $validated = $request->validated();
+        unset($validated['images']);
+
+        $imageFiles = RequestUploadedFileList::asList($request, 'images');
+
+        $this->updateProductAction->execute($product, $validated, $imageFiles);
+
+        $product->refresh();
+        $product->load(['category', 'images', 'locations.warehouse']);
+        $product->loadSum('locations', 'quantity');
+
+        return new ProductResource($product);
+    }
+
+    public function destroy(Product $product): Response
+    {
+        $this->authorize('delete', $product);
+
+        $this->deleteProductAction->execute($product);
+
+        return response()->noContent();
     }
 }

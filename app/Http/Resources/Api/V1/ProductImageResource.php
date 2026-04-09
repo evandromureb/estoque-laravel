@@ -11,8 +11,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ProductImageResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -20,11 +18,14 @@ class ProductImageResource extends JsonResource
         /** @var ProductImage $model */
         $model = $this->resource;
 
-        $data = parent::toArray($request);
-        assert(is_array($data));
-
-        return array_merge($data, [
-            'url' => $model->publicUrl(),
-        ]);
+        return [
+            'id'         => $model->id,
+            'product_id' => $model->product_id,
+            'path'       => $model->path,
+            'is_primary' => (bool) $model->is_primary,
+            'url'        => $model->publicUrl(),
+            'created_at' => $model->created_at?->toIso8601String(),
+            'updated_at' => $model->updated_at?->toIso8601String(),
+        ];
     }
 }

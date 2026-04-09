@@ -10,15 +10,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class UserResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        $data = parent::toArray($request);
-        assert(is_array($data));
-
-        return $data;
+        return [
+            'id'                => $this->id,
+            'name'              => $this->name,
+            'email'             => $this->email,
+            'is_admin'          => (bool) $this->is_admin,
+            'additional_info'   => $this->additional_info,
+            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
+            'created_at'        => $this->created_at?->toIso8601String(),
+            'updated_at'        => $this->updated_at?->toIso8601String(),
+        ];
     }
 }

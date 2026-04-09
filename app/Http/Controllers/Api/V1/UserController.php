@@ -4,53 +4,61 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Application\Inventory\Users\{CreateUserAction, ListUsersForIndexQuery, UpdateUserAction};
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\{StoreUserRequest, UpdateUserRequest};
+use App\Http\Resources\Api\V1\UserResource;
+use App\Models\User;
+use Illuminate\Http\{JsonResponse, Request, Response};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-/**
- * Stub para futura API REST. Não está registado em rotas.
- *
- * @internal
- */
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): void
-    {
-        //
+    public function __construct(
+        private readonly ListUsersForIndexQuery $listUsersForIndexQuery,
+        private readonly CreateUserAction $createUserAction,
+        private readonly UpdateUserAction $updateUserAction,
+    ) {
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): void
+    public function index(Request $request): AnonymousResourceCollection
     {
-        //
+        $this->authorize('viewAny', User::class);
+
+        $search = $request->filled('search') ? (string) $request->query('search') : null;
+        $users  = $this->listUsersForIndexQuery->execute($search, 15);
+
+        return UserResource::collection($users);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): void
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        //
+        $user = $this->createUserAction->execute($request->validated());
+
+        return (new UserResource($user))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id): void
+    public function show(User $user): UserResource
     {
-        //
+        $this->authorize('view', $user);
+
+        return new UserResource($user);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id): void
+    public function update(UpdateUserRequest $request, User $user): UserResource
     {
-        //
+        $this->updateUserAction->execute($user, $request->validated());
+
+        return new UserResource($user->fresh());
+    }
+
+    public function destroy(User $user): Response
+    {
+        $this->authorize('delete', $user);
+        $user->delete();
+
+        return response()->noContent();
     }
 }

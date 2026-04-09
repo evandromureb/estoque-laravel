@@ -10,15 +10,18 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class WarehouseResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        $data = parent::toArray($request);
-        assert(is_array($data));
-
-        return $data;
+        return [
+            'id'              => $this->id,
+            'name'            => $this->name,
+            'location_string' => $this->location_string,
+            'description'     => $this->description,
+            'additional_info' => $this->additional_info,
+            'created_at'      => $this->created_at?->toIso8601String(),
+            'updated_at'      => $this->updated_at?->toIso8601String(),
+        ];
     }
 }
