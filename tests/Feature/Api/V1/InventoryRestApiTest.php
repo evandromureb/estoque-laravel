@@ -24,28 +24,38 @@ it('returns 401 for unauthenticated api requests', function (): void {
     $this->getJson('/api/v1/products')->assertUnauthorized();
 });
 
+it('authenticates api requests with a sanctum bearer token', function (): void {
+    Product::factory()->create();
+
+    $token = $this->admin->createToken('test')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/products')
+        ->assertSuccessful();
+});
+
 it('forbids non-admin from category endpoints', function (): void {
-    $this->actingAs($this->member)->getJson('/api/v1/categories')->assertForbidden();
+    $this->actingAs($this->member, 'sanctum')->getJson('/api/v1/categories')->assertForbidden();
 });
 
 it('lists categories for admin', function (): void {
     Category::factory()->count(2)->create();
 
-    $response = $this->actingAs($this->admin)->getJson('/api/v1/categories');
+    $response = $this->actingAs($this->admin, 'sanctum')->getJson('/api/v1/categories');
 
     $response->assertSuccessful()
         ->assertJsonStructure(['data' => [['id', 'name']]]);
 });
 
 it('validates category store payload', function (): void {
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->postJson('/api/v1/categories', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['name']);
 });
 
 it('creates and deletes a category', function (): void {
-    $create = $this->actingAs($this->admin)->postJson('/api/v1/categories', [
+    $create = $this->actingAs($this->admin, 'sanctum')->postJson('/api/v1/categories', [
         'name'        => 'Eletrônicos',
         'description' => 'Teste',
     ]);
@@ -55,21 +65,21 @@ it('creates and deletes a category', function (): void {
 
     $id = $create->json('data.id');
 
-    $this->actingAs($this->admin)->deleteJson("/api/v1/categories/{$id}")
+    $this->actingAs($this->admin, 'sanctum')->deleteJson("/api/v1/categories/{$id}")
         ->assertNoContent();
 });
 
 it('lists warehouses for admin', function (): void {
     Warehouse::factory()->create(['name' => 'CD Norte']);
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->getJson('/api/v1/warehouses')
         ->assertSuccessful()
         ->assertJsonFragment(['name' => 'CD Norte']);
 });
 
 it('validates warehouse store payload', function (): void {
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->postJson('/api/v1/warehouses', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['name']);
@@ -78,7 +88,7 @@ it('validates warehouse store payload', function (): void {
 it('lists products for any authenticated user', function (): void {
     Product::factory()->create();
 
-    $this->actingAs($this->member)
+    $this->actingAs($this->member, 'sanctum')
         ->getJson('/api/v1/products')
         ->assertSuccessful()
         ->assertJsonStructure(['data' => [['id', 'sku']]]);
@@ -87,7 +97,7 @@ it('lists products for any authenticated user', function (): void {
 it('forbids non-admin from creating products', function (): void {
     $category = Category::factory()->create();
 
-    $this->actingAs($this->member)
+    $this->actingAs($this->member, 'sanctum')
         ->postJson('/api/v1/products', [
             'category_id'   => $category->id,
             'name'          => 'Item',
@@ -99,7 +109,7 @@ it('forbids non-admin from creating products', function (): void {
 });
 
 it('validates product store payload for admin', function (): void {
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->postJson('/api/v1/products', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['category_id', 'name', 'sku', 'price', 'minimum_stock']);
@@ -108,7 +118,7 @@ it('validates product store payload for admin', function (): void {
 it('creates a product without images via api', function (): void {
     $category = Category::factory()->create();
 
-    $response = $this->actingAs($this->admin)->postJson('/api/v1/products', [
+    $response = $this->actingAs($this->admin, 'sanctum')->postJson('/api/v1/products', [
         'category_id'   => $category->id,
         'name'          => 'Teclado',
         'sku'           => 'KB-001',
@@ -124,7 +134,7 @@ it('creates a product without images via api', function (): void {
 it('updates a product for admin', function (): void {
     $product = Product::factory()->create(['name' => 'Antigo']);
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->putJson("/api/v1/products/{$product->id}", [
             'category_id'   => $product->category_id,
             'name'          => 'Novo nome',
@@ -139,7 +149,7 @@ it('updates a product for admin', function (): void {
 it('deletes a product for admin', function (): void {
     $product = Product::factory()->create();
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v1/products/{$product->id}")
         ->assertNoContent();
 
@@ -150,7 +160,7 @@ it('manages product locations for admin', function (): void {
     $product   = Product::factory()->create();
     $warehouse = Warehouse::factory()->create();
 
-    $store = $this->actingAs($this->admin)->postJson('/api/v1/product-locations', [
+    $store = $this->actingAs($this->admin, 'sanctum')->postJson('/api/v1/product-locations', [
         'product_id'   => $product->id,
         'warehouse_id' => $warehouse->id,
         'aisle'        => 'A',
@@ -162,7 +172,7 @@ it('manages product locations for admin', function (): void {
 
     $id = $store->json('data.id');
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->putJson("/api/v1/product-locations/{$id}", [
             'warehouse_id' => $warehouse->id,
             'aisle'        => 'A',
@@ -172,7 +182,7 @@ it('manages product locations for admin', function (): void {
         ->assertSuccessful()
         ->assertJsonPath('data.quantity', 8);
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v1/product-locations/{$id}")
         ->assertNoContent();
 });
@@ -198,7 +208,7 @@ it('rejects duplicate bin on product location update via api', function (): void
         'quantity'     => 3,
     ]);
 
-    $this->actingAs($admin)->putJson("/api/v1/product-locations/{$second->id}", [
+    $this->actingAs($admin, 'sanctum')->putJson("/api/v1/product-locations/{$second->id}", [
         'warehouse_id' => $warehouse->id,
         'aisle'        => 'A',
         'shelf'        => '1',
@@ -209,7 +219,7 @@ it('rejects duplicate bin on product location update via api', function (): void
 });
 
 it('manages users for admin', function (): void {
-    $create = $this->actingAs($this->admin)->postJson('/api/v1/users', [
+    $create = $this->actingAs($this->admin, 'sanctum')->postJson('/api/v1/users', [
         'name'     => 'Novo',
         'email'    => 'novo@example.com',
         'password' => 'senha-segura',
@@ -220,20 +230,20 @@ it('manages users for admin', function (): void {
 
     $id = $create->json('data.id');
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->getJson("/api/v1/users/{$id}")
         ->assertSuccessful();
 });
 
 it('validates user store payload', function (): void {
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->postJson('/api/v1/users', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['name', 'email', 'password']);
 });
 
 it('forbids non-admin from user index', function (): void {
-    $this->actingAs($this->member)->getJson('/api/v1/users')->assertForbidden();
+    $this->actingAs($this->member, 'sanctum')->getJson('/api/v1/users')->assertForbidden();
 });
 
 it('stores product images via multipart upload', function (): void {
@@ -242,7 +252,7 @@ it('stores product images via multipart upload', function (): void {
     $product = Product::factory()->create();
     $file    = UploadedFile::fake()->image('foto.jpg', 100, 100);
 
-    $response = $this->actingAs($this->admin)->post("/api/v1/products/{$product->id}/images", [
+    $response = $this->actingAs($this->admin, 'sanctum')->post("/api/v1/products/{$product->id}/images", [
         'images' => [$file],
     ]);
 
@@ -262,7 +272,7 @@ it('deletes a product image', function (): void {
 
     Storage::disk('public')->put($image->path, 'fake');
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v1/products/{$product->id}/images/{$image->id}")
         ->assertNoContent();
 
@@ -274,7 +284,7 @@ it('returns 404 when deleting image from another product', function (): void {
     $p2    = Product::factory()->create();
     $image = ProductImage::factory()->for($p2)->create();
 
-    $this->actingAs($this->admin)
+    $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v1/products/{$p1->id}/images/{$image->id}")
         ->assertNotFound();
 });

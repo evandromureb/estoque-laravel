@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
     ->name('api.v1.')
-    ->middleware('auth')
+    ->middleware('auth:sanctum')
     ->group(function (): void {
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('warehouses', WarehouseController::class);

@@ -11,10 +11,12 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.17",
         "driftingly/rector-laravel": "^2.3",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
