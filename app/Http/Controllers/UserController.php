@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Application\Inventory\Users\{CreateUserAction, ListUsersForIndexQuery, UpdateUserAction};
-use App\Http\Requests\{StoreUserRequest, UpdateUserRequest};
+use App\Http\Requests\{DestroyUserApiTokenRequest, StoreUserApiTokenRequest, StoreUserRequest, UpdateUserRequest};
 use App\Models\User;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\View\View;
@@ -52,6 +52,30 @@ class UserController extends Controller
 
         return $this->redirectAfterCrud($request, 'users.index', [], [
             'success' => 'Usuário atualizado com sucesso.',
+        ]);
+    }
+
+    public function storeApiToken(StoreUserApiTokenRequest $request, User $user): RedirectResponse
+    {
+        $tokenName      = (string) $request->validated()['token_name'];
+        $plainTextToken = $user->createToken($tokenName)->plainTextToken;
+
+        return $this->redirectAfterCrud($request, 'users.index', [], [
+            'success'         => 'Token de API criado. Copie-o agora; ele não será exibido novamente.',
+            'api_token_plain' => $plainTextToken,
+        ]);
+    }
+
+    public function destroyApiToken(DestroyUserApiTokenRequest $request, User $user): RedirectResponse
+    {
+        $deleted = $user->tokens()->where('name', User::DEFAULT_API_TOKEN_NAME)->delete();
+
+        $message = $deleted > 0
+            ? 'Token de API revogado com sucesso.'
+            : 'Não havia token padrão para revogar.';
+
+        return $this->redirectAfterCrud($request, 'users.index', [], [
+            'success' => $message,
         ]);
     }
 

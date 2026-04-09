@@ -23,6 +23,12 @@ final class ListUsersForIndexQuery
             });
         }
 
+        $query->withExists([
+            'tokens as has_default_api_token' => function ($q): void {
+                $q->where('name', User::DEFAULT_API_TOKEN_NAME);
+            },
+        ]);
+
         return $query->paginate($perPage)->withQueryString();
     }
 }

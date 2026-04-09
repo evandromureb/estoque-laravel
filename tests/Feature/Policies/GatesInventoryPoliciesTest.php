@@ -60,3 +60,17 @@ it('forbids non-admin from deleting any user', function (): void {
 
     expect(Gate::forUser($this->member)->allows('delete', $other))->toBeFalse();
 });
+
+it('allows only admins to create an api token for a user', function (): void {
+    $other = User::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('createApiToken', $other))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('createApiToken', $other))->toBeFalse();
+});
+
+it('allows only admins to revoke an api token for a user', function (): void {
+    $other = User::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('revokeApiToken', $other))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('revokeApiToken', $other))->toBeFalse();
+});

@@ -16,6 +16,10 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::post('users/{user}/api-token', [\App\Http\Controllers\UserController::class, 'storeApiToken'])
+        ->name('users.api-token.store');
+    Route::delete('users/{user}/api-token', [\App\Http\Controllers\UserController::class, 'destroyApiToken'])
+        ->name('users.api-token.destroy');
     Route::resource('users', \App\Http\Controllers\UserController::class)->except(['create', 'edit', 'show']);
     Route::resource('warehouses', \App\Http\Controllers\WarehouseController::class)->except(['create', 'edit', 'show']);
     Route::resource('categories', \App\Http\Controllers\CategoryController::class)->except(['create', 'edit', 'show']);

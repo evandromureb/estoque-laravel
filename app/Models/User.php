@@ -20,6 +20,11 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable;
 
     /**
+     * Nome do token Sanctum criado pelo painel (no máximo um por usuário).
+     */
+    public const DEFAULT_API_TOKEN_NAME = 'Painel web';
+
+    /**
      * @var list<string>
      */
     protected $fillable = [

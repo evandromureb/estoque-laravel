@@ -65,6 +65,108 @@ describe('user management', function (): void {
             '_return_url'     => $return,
         ])->assertRedirect($return);
     });
+
+    it('allows admin to create an api token for a user', function (): void {
+        $target = User::factory()->create();
+
+        $response = $this->actingAs($this->admin)->post(route('users.api-token.store', $target), [
+            'token_name' => 'Integração teste',
+        ]);
+
+        $response->assertRedirect(route('users.index'))
+            ->assertSessionHas('api_token_plain')
+            ->assertSessionHas('success');
+
+        $plain = (string) $response->getSession()->get('api_token_plain');
+        expect($plain)->not->toBe('');
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_type' => User::class,
+            'tokenable_id'   => $target->id,
+            'name'           => 'Integração teste',
+        ]);
+
+        $this->withHeader('Authorization', 'Bearer ' . $plain)
+            ->getJson('/api/v1/categories')
+            ->assertOk();
+    });
+
+    it('prevents a second api token with the default name for the same user', function (): void {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $target), [
+            'token_name' => User::DEFAULT_API_TOKEN_NAME,
+        ])->assertRedirect()
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('api_token_plain');
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $target), [
+            'token_name' => User::DEFAULT_API_TOKEN_NAME,
+        ])->assertRedirect()
+            ->assertSessionHasErrors('token_name');
+    });
+
+    it('allows default-named tokens for different users', function (): void {
+        $first  = User::factory()->create();
+        $second = User::factory()->create();
+        $name   = User::DEFAULT_API_TOKEN_NAME;
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $first), [
+            'token_name' => $name,
+        ])->assertSessionHas('api_token_plain');
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $second), [
+            'token_name' => $name,
+        ])->assertSessionHas('api_token_plain');
+    });
+
+    it('allows admin to revoke the default api token for a user', function (): void {
+        $target = User::factory()->create();
+        $target->createToken(User::DEFAULT_API_TOKEN_NAME);
+
+        $this->actingAs($this->admin)
+            ->from(route('users.index'))
+            ->delete(route('users.api-token.destroy', $target))
+            ->assertRedirect(route('users.index'))
+            ->assertSessionHas('success');
+
+        expect($target->tokens()->where('name', User::DEFAULT_API_TOKEN_NAME)->exists())->toBeFalse();
+    });
+
+    it('reports success when revoking default token that does not exist', function (): void {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->admin)
+            ->from(route('users.index'))
+            ->delete(route('users.api-token.destroy', $target))
+            ->assertRedirect(route('users.index'))
+            ->assertSessionHas('success');
+    });
+
+    it('forbids non-admin from revoking an api token', function (): void {
+        $target = User::factory()->create();
+        $target->createToken(User::DEFAULT_API_TOKEN_NAME);
+
+        $this->actingAs($this->member)
+            ->delete(route('users.api-token.destroy', $target))
+            ->assertForbidden();
+    });
+
+    it('forbids non-admin from creating an api token', function (): void {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->member)->post(route('users.api-token.store', $target), [
+            'token_name' => 'Tentativa',
+        ])->assertForbidden();
+    });
+
+    it('redirects guests from api token creation', function (): void {
+        $target = User::factory()->create();
+
+        $this->post(route('users.api-token.store', $target), [
+            'token_name' => 'X',
+        ])->assertRedirect(route('login'));
+    });
 });
 
 describe('category management', function (): void {

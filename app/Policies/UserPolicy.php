@@ -49,4 +49,20 @@ class UserPolicy
 
         return $user->id !== $model->id;
     }
+
+    /**
+     * Apenas administradores podem gerar tokens de API para outros usuários.
+     */
+    public function createApiToken(User $user, User $model): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
+     * Apenas administradores podem revogar o token de API padrão de outros usuários.
+     */
+    public function revokeApiToken(User $user, User $model): bool
+    {
+        return $user->is_admin;
+    }
 }

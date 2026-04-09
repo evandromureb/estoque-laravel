@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="userManagement(@js($crudRoutes))">
+    <div class="py-12" x-data="userManagement(@js($crudRoutes), @js(\App\Models\User::DEFAULT_API_TOKEN_NAME))">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if ($errors->any())
                 <div class="mb-6">
@@ -40,6 +40,14 @@
                         </div>
                     @endif
 
+                    @if(session('api_token_plain'))
+                        <div class="mb-6 rounded-xl border-2 border-amber-400 bg-amber-50 p-4 text-amber-950">
+                            <p class="text-sm font-bold text-amber-900 mb-2">Token de API (exibido uma única vez)</p>
+                            <p class="text-xs text-amber-800 mb-3">Guarde em local seguro. Qualquer pessoa com este valor pode acessar a API como este usuário.</p>
+                            <code class="block w-full break-all rounded-lg bg-white px-3 py-2 text-xs font-mono text-gray-900 border border-amber-200 select-all">{{ session('api_token_plain') }}</code>
+                        </div>
+                    @endif
+
                     <div class="overflow-hidden bg-gray-50 rounded-xl border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
@@ -59,6 +67,7 @@
                                             'name' => $user->name,
                                             'email' => $user->email,
                                             'additional_info' => $user->additional_info,
+                                            'hasDefaultApiToken' => (bool) $user->has_default_api_token,
                                         ];
                                     @endphp
                                     <tr class="hover:bg-slate-50 transition-colors">
@@ -162,11 +171,11 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-black uppercase text-gray-500 mb-1">Email</label>
-                                <input type="email" name="email" x-model="form.email" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500" required>
+                                <input type="email" name="email" x-model="form.email" autocomplete="username" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-black uppercase text-gray-500 mb-1" x-text="isEditing ? 'Nova Senha (opcional)' : 'Senha'"></label>
-                                <input type="password" name="password" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500" :required="!isEditing">
+                                <input type="password" name="password" autocomplete="new-password" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500" :required="!isEditing">
                             </div>
                             <div>
                                 <label class="block text-xs font-black uppercase text-gray-500 mb-1">Notas / Informações Adicionais</label>
@@ -179,6 +188,44 @@
                             <button type="submit" class="bg-indigo-600 text-white px-8 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-indigo-700">Salvar</button>
                         </div>
                     </form>
+
+                    <div x-show="isEditing" class="border-t border-gray-200 bg-slate-50 px-8 py-6 space-y-3">
+                        <h4 class="text-sm font-black uppercase text-slate-600">Token de API (Sanctum)</h4>
+                        <p x-show="!form.hasDefaultApiToken" class="text-xs text-slate-500">
+                            Gera um token para este usuário autenticar chamadas à API (nome padrão: <span class="font-mono text-slate-700">{{ \App\Models\User::DEFAULT_API_TOKEN_NAME }}</span>). Confirme no aviso antes de criar. Apenas administradores veem esta opção.
+                        </p>
+                        <p x-show="form.hasDefaultApiToken" class="text-xs text-amber-800">
+                            Este usuário já possui o token padrão «{{ \App\Models\User::DEFAULT_API_TOKEN_NAME }}». Revogue-o para encerrar o acesso; depois você poderá gerar um novo token.
+                        </p>
+                        <div x-show="!form.hasDefaultApiToken">
+                            <form :id="'user-api-token-generate-' + form.id" :action="`${routes.baseUrl}/${form.id}/api-token`" method="POST" class="hidden">
+                                @csrf
+                                <x-hidden-return-url />
+                                <input type="hidden" name="token_name" value="{{ \App\Models\User::DEFAULT_API_TOKEN_NAME }}">
+                            </form>
+                            <button
+                                type="button"
+                                @click="promptGenerateToken()"
+                                class="w-full min-h-[3rem] rounded-xl bg-indigo-600 px-6 py-3 text-base font-bold text-white shadow-lg transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >
+                                Gerar token
+                            </button>
+                        </div>
+                        <div x-show="form.hasDefaultApiToken">
+                            <form :id="'user-api-token-revoke-' + form.id" :action="`${routes.baseUrl}/${form.id}/api-token`" method="POST" class="hidden">
+                                @csrf
+                                @method('DELETE')
+                                <x-hidden-return-url />
+                            </form>
+                            <button
+                                type="button"
+                                @click="promptRevokeToken()"
+                                class="w-full min-h-[3rem] rounded-xl bg-red-600 px-6 py-3 text-base font-bold text-white shadow-lg transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            >
+                                Revogar token
+                            </button>
+                        </div>
+                    </div>
                 </x-modal-panel>
             </div>
         </div>
@@ -205,6 +252,43 @@
                         </div>
                     </form>
                 </x-modal-panel>
+            </div>
+        </div>
+
+        <div
+            x-show="$store.userTokenAction.open"
+            x-cloak
+            class="fixed inset-0 z-[110] overflow-y-auto"
+            style="display: none;"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="flex min-h-screen items-center justify-center px-4 py-8">
+                <div class="fixed inset-0 z-[100] bg-gray-900/60 backdrop-blur-sm" @click="$store.userTokenAction.close()"></div>
+                <div class="relative z-[110] w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl" @click.stop>
+                    <div class="px-6 py-4" :class="$store.userTokenAction.headerClass">
+                        <h3 class="text-lg font-black" :class="$store.userTokenAction.titleClass" x-text="$store.userTokenAction.title"></h3>
+                    </div>
+                    <div class="px-6 py-5">
+                        <p class="whitespace-pre-line text-sm leading-relaxed text-gray-700" x-text="$store.userTokenAction.message"></p>
+                    </div>
+                    <div class="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+                        <button
+                            type="button"
+                            class="rounded-xl px-5 py-2 text-sm font-bold text-gray-600 hover:bg-gray-200/80"
+                            @click="$store.userTokenAction.close()"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-xl px-5 py-2 text-sm font-bold shadow"
+                            :class="$store.userTokenAction.confirmBtnClass"
+                            x-text="$store.userTokenAction.confirmText"
+                            @click="$store.userTokenAction.confirm()"
+                        ></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
