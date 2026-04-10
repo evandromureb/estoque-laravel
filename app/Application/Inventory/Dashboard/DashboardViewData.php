@@ -7,9 +7,6 @@ namespace App\Application\Inventory\Dashboard;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Read model for the authenticated dashboard.
- */
 final readonly class DashboardViewData
 {
     /**

@@ -18,7 +18,6 @@
 
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl p-0 border border-gray-100">
 
-                <!-- Table Header Section with Gradient -->
                 <div class="bg-gradient-to-r from-indigo-700 to-purple-800 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <h3 class="text-white font-bold text-lg flex items-center gap-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
@@ -219,7 +218,6 @@
             </div>
         </div>
 
-        <!-- Main Form Modal (Create/Edit) — abas Geral / Imagens / Estoque -->
         <div x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 py-8">
                 <x-modal-backdrop close="closeModal()" overlay-class="bg-indigo-900/60" class="z-40" />
@@ -427,7 +425,6 @@
             </div>
         </div>
 
-        <!-- Ver produto (somente leitura) — mesmas abas que edição: Geral / Imagens / Estoque -->
         <div x-show="viewModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex min-h-screen items-center justify-center px-4 py-8">
                 <x-modal-backdrop close="closeViewModal()" overlay-class="bg-indigo-900/60" class="z-40" />
@@ -449,7 +446,6 @@
                         </div>
 
                         <div class="min-h-0 flex-1 overflow-y-auto">
-                            <!-- Aba Geral -->
                             <div class="p-8 space-y-6" x-show="viewTab === 'geral'" x-cloak>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded-full bg-indigo-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-700" x-text="viewProduct.categoryName"></span>
@@ -481,7 +477,6 @@
                                 </div>
                             </div>
 
-                            <!-- Aba Imagens -->
                             <div class="p-8 space-y-6" x-show="viewTab === 'imagens'" x-cloak>
                                 <div class="flex aspect-square max-h-80 items-center justify-center overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-inner mx-auto w-full max-w-md">
                                     <img x-show="activeViewImage" :src="activeViewImage" alt="" class="h-full w-full object-cover">
@@ -497,7 +492,6 @@
                                 <p class="text-center text-sm text-gray-400" x-show="!viewProduct.images || viewProduct.images.length === 0">Nenhuma imagem no catálogo.</p>
                             </div>
 
-                            <!-- Aba Estoque -->
                             <div class="p-8 space-y-4" x-show="viewTab === 'estoque'" x-cloak>
                                 <div class="rounded-xl border border-teal-100 bg-teal-50/50 p-4 text-sm text-teal-900" x-show="viewProduct.minimum_stock > 0">
                                     <span class="font-black" x-text="viewProduct.totalStock"></span> un. no total
@@ -550,7 +544,6 @@
             </div>
         </div>
 
-        <!-- Extra Info Modal -->
         <div x-show="infoModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <x-modal-backdrop close="infoModalOpen = false" overlay-class="bg-amber-900/40" class="z-40" />

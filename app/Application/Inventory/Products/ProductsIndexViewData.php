@@ -7,9 +7,6 @@ namespace App\Application\Inventory\Products;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Read model for the products index screen.
- */
 final readonly class ProductsIndexViewData
 {
     /**

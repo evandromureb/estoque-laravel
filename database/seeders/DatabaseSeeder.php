@@ -35,10 +35,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Random users
         User::factory(10)->create();
 
-        // Armazéns nomeados (sempre presentes no seed)
         $warehouseNames = ['CD São Paulo', 'CD Rio', 'Loja Centro', 'Hub Nordeste', 'Filial Sul'];
         $warehouses     = collect();
 
@@ -49,10 +47,8 @@ class DatabaseSeeder extends Seeder
             ]));
         }
 
-        // Categories
         $categories = Category::factory(8)->create();
 
-        // Products com estoque mínimo explícito
         $products = Product::factory(20)
             ->recycle($categories)
             ->create();

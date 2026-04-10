@@ -25,7 +25,6 @@
 
             <div class="bg-white overflow-hidden shadow-2xl sm:rounded-3xl p-0 border border-gray-100 divide-y md:divide-y-0 md:divide-x divide-gray-100 md:flex">
                 
-                <!-- Gallery Section -->
                 <div class="md:w-1/3 p-8 bg-gray-50/50">
                     <div x-data="{ activeImage: '{{ $product->images->first()?->publicUrl() ?? '' }}' }">
                         <div class="bg-white p-4 rounded-3xl shadow-lg border border-gray-100 mb-6 aspect-square flex items-center justify-center overflow-hidden">
@@ -97,7 +96,6 @@
                     </div>
                 </div>
 
-                <!-- Info Section -->
                 <div class="md:flex-1 min-w-0 p-8 lg:p-12 space-y-8">
                     <div>
                         <div class="flex items-center gap-3 mb-2">

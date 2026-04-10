@@ -12,17 +12,11 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         $this->app->bind(ProductQrCodeGenerator::class, LaravelProductQrCodeGenerator::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Gate::define('viewApiDocs', function (?User $user = null): bool {

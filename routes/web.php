@@ -3,11 +3,17 @@
 declare(strict_types = 1);
 
 use App\Http\Controllers\{DashboardController, ProductImageController, ProfileController};
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
 
-Route::get('/', function (): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View {
+Route::get('/', function (): View|RedirectResponse {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
     return view('welcome');
-});
+})->name('home');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 

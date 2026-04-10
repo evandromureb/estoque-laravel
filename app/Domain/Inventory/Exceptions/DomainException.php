@@ -6,9 +6,6 @@ namespace App\Domain\Inventory\Exceptions;
 
 use RuntimeException;
 
-/**
- * Base exception for inventory domain rule violations.
- */
 abstract class DomainException extends RuntimeException
 {
 }

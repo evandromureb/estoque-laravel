@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace Database\Factories;
 
-use App\Models\{Product, Warehouse};
+use App\Models\{Product, ProductLocation, Warehouse};
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ProductLocation>
+ * @extends Factory<ProductLocation>
  */
 class ProductLocationFactory extends Factory
 {
