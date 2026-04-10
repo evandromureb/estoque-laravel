@@ -67,6 +67,30 @@ describe('user management', function (): void {
         ])->assertRedirect($return);
     });
 
+    it('uses default token name when token_name is empty', function (): void {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $target), [
+            'token_name' => '',
+        ])->assertRedirect()
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('api_token_plain');
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_type' => User::class,
+            'tokenable_id'   => $target->id,
+            'name'           => User::DEFAULT_API_TOKEN_NAME,
+        ]);
+    });
+
+    it('validates api token name max length', function (): void {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->admin)->post(route('users.api-token.store', $target), [
+            'token_name' => str_repeat('a', 256),
+        ])->assertSessionHasErrors('token_name');
+    });
+
     it('allows admin to create an api token for a user', function (): void {
         $target = User::factory()->create();
 

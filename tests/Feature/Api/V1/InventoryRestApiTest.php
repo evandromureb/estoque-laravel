@@ -69,6 +69,24 @@ it('creates and deletes a category', function (): void {
         ->assertNoContent();
 });
 
+it('shows and updates a category via api', function (): void {
+    $category = Category::factory()->create(['name' => 'Original']);
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson("/api/v1/categories/{$category->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'Original');
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->putJson("/api/v1/categories/{$category->id}", [
+            'name'            => 'Atualizada',
+            'description'     => null,
+            'additional_info' => null,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'Atualizada');
+});
+
 it('lists warehouses for admin', function (): void {
     Warehouse::factory()->create(['name' => 'CD Norte']);
 
@@ -85,6 +103,37 @@ it('validates warehouse store payload', function (): void {
         ->assertJsonValidationErrors(['name']);
 });
 
+it('creates shows updates and deletes a warehouse via api', function (): void {
+    $store = $this->actingAs($this->admin, 'sanctum')->postJson('/api/v1/warehouses', [
+        'name'            => 'CD Teste',
+        'location_string' => 'Zona 1',
+    ]);
+
+    $store->assertCreated()->assertJsonPath('data.name', 'CD Teste');
+    $id = $store->json('data.id');
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson("/api/v1/warehouses/{$id}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'CD Teste');
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->putJson("/api/v1/warehouses/{$id}", [
+            'name'            => 'CD Atualizado',
+            'location_string' => 'Zona 2',
+            'description'     => null,
+            'additional_info' => null,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'CD Atualizado');
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->deleteJson("/api/v1/warehouses/{$id}")
+        ->assertNoContent();
+
+    expect(Warehouse::query()->find($id))->toBeNull();
+});
+
 it('lists products for any authenticated user', function (): void {
     Product::factory()->create();
 
@@ -92,6 +141,15 @@ it('lists products for any authenticated user', function (): void {
         ->getJson('/api/v1/products')
         ->assertSuccessful()
         ->assertJsonStructure(['data' => [['id', 'sku']]]);
+});
+
+it('returns product detail for any authenticated user', function (): void {
+    $product = Product::factory()->create(['name' => 'Detalhe API']);
+
+    $this->actingAs($this->member, 'sanctum')
+        ->getJson("/api/v1/products/{$product->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'Detalhe API');
 });
 
 it('forbids non-admin from creating products', function (): void {
@@ -154,6 +212,25 @@ it('deletes a product for admin', function (): void {
         ->assertNoContent();
 
     expect(Product::query()->find($product->id))->toBeNull();
+});
+
+it('lists product locations and shows one via api', function (): void {
+    $product   = Product::factory()->create();
+    $warehouse = Warehouse::factory()->create();
+    $location  = ProductLocation::factory()->create([
+        'product_id'   => $product->id,
+        'warehouse_id' => $warehouse->id,
+    ]);
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson('/api/v1/product-locations')
+        ->assertSuccessful()
+        ->assertJsonStructure(['data' => [['id', 'quantity']]]);
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson("/api/v1/product-locations/{$location->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.id', $location->id);
 });
 
 it('manages product locations for admin', function (): void {
@@ -235,6 +312,35 @@ it('manages users for admin', function (): void {
         ->assertSuccessful();
 });
 
+it('searches updates and deletes users via api', function (): void {
+    $user = User::factory()->create([
+        'name'  => 'Alice Busca',
+        'email' => 'alice-busca@example.com',
+    ]);
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson('/api/v1/users?search=Alice')
+        ->assertSuccessful()
+        ->assertJsonFragment(['email' => 'alice-busca@example.com']);
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->putJson("/api/v1/users/{$user->id}", [
+            'name'            => 'Alice Atualizada',
+            'email'           => $user->email,
+            'password'        => null,
+            'additional_info' => null,
+            'is_admin'        => false,
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.name', 'Alice Atualizada');
+
+    $this->actingAs($this->admin, 'sanctum')
+        ->deleteJson("/api/v1/users/{$user->id}")
+        ->assertNoContent();
+
+    expect(User::query()->find($user->id))->toBeNull();
+});
+
 it('validates user store payload', function (): void {
     $this->actingAs($this->admin, 'sanctum')
         ->postJson('/api/v1/users', [])
@@ -287,4 +393,22 @@ it('returns 404 when deleting image from another product', function (): void {
     $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v1/products/{$p1->id}/images/{$image->id}")
         ->assertNotFound();
+});
+
+it('returns api errors as json with http status and without debug payload', function (): void {
+    $this->actingAs($this->admin, 'sanctum')
+        ->getJson('/api/v1/products/999999')
+        ->assertNotFound()
+        ->assertJsonStructure(['message'])
+        ->assertJsonMissing(['exception', 'file', 'line', 'trace']);
+});
+
+it('returns json for api errors even without accept application/json', function (): void {
+    $token = $this->admin->createToken('test')->plainTextToken;
+
+    $response = $this->withToken($token)->get('/api/v1/products/999999');
+
+    $response->assertNotFound();
+    expect($response->headers->get('content-type'))->toContain('application/json');
+    expect($response->json())->not->toHaveKey('trace');
 });

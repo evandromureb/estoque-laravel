@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-use App\Models\{Category, User, Warehouse};
+use App\Models\{Category, ProductLocation, User, Warehouse};
 use Illuminate\Support\Facades\Gate;
 
 beforeEach(function (): void {
@@ -36,6 +36,15 @@ it('allows only admins to update a warehouse', function (): void {
 
     expect(Gate::forUser($this->admin)->allows('update', $warehouse))->toBeTrue()
         ->and(Gate::forUser($this->member)->allows('update', $warehouse))->toBeFalse();
+});
+
+it('allows only admins to list and view a product location', function (): void {
+    $location = ProductLocation::factory()->create();
+
+    expect(Gate::forUser($this->admin)->allows('viewAny', ProductLocation::class))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('viewAny', ProductLocation::class))->toBeFalse()
+        ->and(Gate::forUser($this->admin)->allows('view', $location))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('view', $location))->toBeFalse();
 });
 
 it('allows only admins to view another user', function (): void {
@@ -73,4 +82,18 @@ it('allows only admins to revoke an api token for a user', function (): void {
 
     expect(Gate::forUser($this->admin)->allows('revokeApiToken', $other))->toBeTrue()
         ->and(Gate::forUser($this->member)->allows('revokeApiToken', $other))->toBeFalse();
+});
+
+it('allows only admins to view api docs outside local and testing', function (): void {
+    $originalEnv = app('env');
+
+    try {
+        app()->instance('env', 'production');
+
+        expect(Gate::forUser($this->admin)->allows('viewApiDocs'))->toBeTrue()
+            ->and(Gate::forUser($this->member)->allows('viewApiDocs'))->toBeFalse()
+            ->and(Gate::forUser(null)->allows('viewApiDocs'))->toBeFalse();
+    } finally {
+        app()->instance('env', $originalEnv);
+    }
 });
