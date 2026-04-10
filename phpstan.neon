@@ -1,0 +1,40 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - bootstrap/
+        - config/
+        - database/
+        - routes/
+        - resources/
+
+    level: 8
+
+    excludePaths:
+        - vendor/*
+        - storage/*
+        - public/*
+        - node_modules/*
+        - bootstrap/cache/*
+        - storage/framework/*
+        - storage/logs/*
+
+    parallel:
+        processTimeout: 300.0
+        maximumNumberOfProcesses: 4
+
+    reportUnmatchedIgnoredErrors: false
+
+    bootstrapFiles:
+        - bootstrap/app.php
+
+    ignoreErrors:
+        - '#Call to an undefined method .*::.*\(\)#'
+        - '#Access to an undefined property .*::\$.*#'
+        - '#PHPDoc tag @var has invalid value#'
+        -
+            identifier: expr.resultUnused
+            path: resources/views/**/*.blade.php
