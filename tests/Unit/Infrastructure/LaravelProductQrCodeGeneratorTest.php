@@ -18,7 +18,7 @@ uses(TestCase::class, RefreshDatabase::class);
 function createQrGeneratorMock(): Generator
 {
     $generator = \Mockery::mock(Generator::class);
-    $generator->shouldReceive('format')->with('png')->andReturnSelf();
+    $generator->shouldReceive('format')->with('svg')->andReturnSelf();
     $generator->shouldReceive('size')->with(300)->andReturnSelf();
     $generator->shouldReceive('margin')->with(2)->andReturnSelf();
     $generator->shouldReceive('generate')
@@ -30,7 +30,7 @@ function createQrGeneratorMock(): Generator
             if (!is_dir($dir)) {
                 mkdir($dir, 0777, true);
             }
-            file_put_contents($fullPath, 'fake-png-bytes');
+            file_put_contents($fullPath, '<svg></svg>');
         });
 
     return $generator;

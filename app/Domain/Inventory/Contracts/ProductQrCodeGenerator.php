@@ -9,7 +9,7 @@ use App\Models\Product;
 interface ProductQrCodeGenerator
 {
     /**
-     * Generate a QR code for the product and persist its path on the model.
+     * Gera um QR code (arquivo SVG no disco public) e persiste o caminho em {@see Product::$qr_code_path}.
      */
     public function generateAndStore(Product $product): void;
 }

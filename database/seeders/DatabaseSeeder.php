@@ -21,6 +21,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if ($this->useStandardProductImages) {
+            StandardProductSeedImages::assertBundledFilesPresent();
+        }
+
         // Admin user
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
@@ -52,10 +56,6 @@ class DatabaseSeeder extends Seeder
         $products = Product::factory(20)
             ->recycle($categories)
             ->create();
-
-        if ($this->useStandardProductImages) {
-            StandardProductSeedImages::assertBundledFilesPresent();
-        }
 
         $qrCodeGenerator = app(ProductQrCodeGenerator::class);
 
